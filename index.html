@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>スマホ入力チャレンジ</title>
+  <style>
+    body {font-size: 18px; padding: 20px;}
+    #problem {font-size: 24px; margin-bottom: 10px;}
+    input {font-size: 20px; width: 100%; padding: 8px;}
+    #feedback {margin-top: 20px;}
+  </style>
+</head>
+<body>
+  <h1>スマホ入力チャレンジ</h1>
+  <div id="game">
+    <div id="problem"></div>
+    <input id="answer" autocomplete="off"/>
+    <button id="submitBtn">回答</button>
+    <div id="status"></div>
+  </div>
+  <div id="feedback"></div>
+
+  <script>
+    const problems = [
+      "あ", "いろ", "さよう", "こんにちは", "ありがとう",
+      "ねこ", "ひこうき", "たんじょうび", "すし", "さくら"
+    ];
+    let current = 0;
+    let correctCount = 0;
+    const errorCounts = {};
+
+    const problemDiv = document.getElementById('problem');
+    const answerInput = document.getElementById('answer');
+    const statusDiv = document.getElementById('status');
+    const feedbackDiv = document.getElementById('feedback');
+    const btn = document.getElementById('submitBtn');
+
+    function loadProblem() {
+      if (current >= problems.length) {
+        showFeedback();
+        return;
+      }
+      problemDiv.textContent = `問題 ${current+1}: 「${problems[current]}」`;
+      answerInput.value = '';
+      statusDiv.textContent = '';
+      answerInput.focus();
+    }
+
+    function showFeedback() {
+      game.style.display = 'none';
+      const rate = Math.round(correctCount / problems.length * 100);
+      let html = `<h2>結果</h2>`;
+      html += `<p>正答率：${rate}%（${correctCount}/${problems.length}）</p>`;
+      if (Object.keys(errorCounts).length) {
+        html += `<p>苦手な文字：</p><ul>`;
+        Object.entries(errorCounts).sort((a,b) => b[1]-a[1]).forEach(([ch, cnt]) => {
+          html += `<li>${ch}：${cnt} 回ミス</li>`;
+        });
+        html += `</ul>`;
+      } else {
+        html += `<p>全問正解！素晴らしい！</p>`;
+      }
+      feedbackDiv.innerHTML = html;
+    }
+
+    btn.onclick = () => {
+      const expected = problems[current];
+      const answer = answerInput.value.trim();
+      if (answer === expected) {
+        correctCount++;
+        statusDiv.textContent = '✅ 正解！';
+      } else {
+        statusDiv.textContent = `❌ 不正解。正解は「${expected}」`;
+        // 文字ごとのミス記録
+        for (let i = 0; i < expected.length; i++) {
+          const ch = expected[i];
+          if (answer[i] !== ch) {
+            errorCounts[ch] = (errorCounts[ch] || 0) + 1;
+          }
+        }
+      }
+      current++;
+      setTimeout(loadProblem, 800);
+    };
+
+    loadProblem();
+  </script>
+</body>
+</html>
